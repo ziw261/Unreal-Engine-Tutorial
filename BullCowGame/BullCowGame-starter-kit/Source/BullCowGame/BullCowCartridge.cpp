@@ -5,8 +5,13 @@ void UBullCowCartridge::BeginPlay() { // When the game starts
     
     Super::BeginPlay();
 
+    const FString WordListPath = FPaths::ProjectContentDir() / TEXT("WordLists/HiddenWordList.txt");
+    FFileHelper::LoadFileToStringArray(Words, *WordListPath);
+
+    Words = GetValidWords();
     SetUpGame();
 
+    PrintLine(TEXT("The number of possible words is %i"), Words.Num());
     PrintLine(TEXT("The HiddenWord is: %s. \nIt is a %i long word."), *HiddenWord, HiddenWord.Len()); // Debug Line
 
 }
@@ -33,9 +38,6 @@ void UBullCowCartridge::SetUpGame() {
     PrintLine(TEXT("You have %i lives"), Lives);
     PrintLine(TEXT("Press enter to continue..."));
 
-    //const TCHAR HW[] = TEXT("BREAD");
-    //PrintLine(TEXT("Character 1 of the hidden word is: %c"), HiddenWord[0]);
-    //PrintLine(TEXT("Character 4 of the HW is: %c"), HW[4]);
 }
 
 void UBullCowCartridge::EndGame() {
@@ -80,10 +82,27 @@ void UBullCowCartridge::ProcessGuess(const FString& Guess) {
 
 bool UBullCowCartridge::IsIsogram(const FString& Word) const {
 
-    for (int32 Index = 0; Index < Word.Len(); Index++) {
-        PrintLine(TEXT("%c"), Word[Index]);
+    for (int32 Index = 0; Index < Word.Len() - 1; Index++) {
+        for (int32 Comparison = Index + 1; Comparison < Word.Len(); Comparison++) {
+            if (Word[Index] == Word[Comparison]) {
+                return false;
+            }
+        }
     }
 
     return true;
+}
+
+
+TArray<FString> UBullCowCartridge::GetValidWords() const {
+    TArray<FString> ValidWords;
+
+    for (FString Word : Words) {
+        if (Word.Len() >= 4 && Word.Len() <= 8 && IsIsogram(Word)) {
+            ValidWords.Emplace(Word);
+        }
+    }
+
+    return ValidWords;
 }
 
